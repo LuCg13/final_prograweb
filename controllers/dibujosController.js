@@ -14,15 +14,28 @@ exports.crearDibujo = (req, res) => {
   const usuarioId = req.user.id;
 
   pool.query(
-    "INSERT INTO dibujos_notas (usuario_id, titulo, descripcion, contenido) VALUES (?, ?, ?, ?)",
-    [usuarioId, titulo, descripcion, contenido],
+    "SELECT * FROM dibujos_notas WHERE titulo = ? AND usuario_id = ?", // Consulta modificada
+    [titulo, usuarioId],
     (error, results) => {
       if (error) throw error;
-      res.json({ message: "Dibujo creado exitosamente", id: results.insertId });
+
+      if (results.length > 0) {
+        // Ya existe un dibujo con el mismo título para este usuario
+        return res.status(400).json({ error: "Ya tienes un dibujo con este título" });
+      } else {
+        // No existe un dibujo con el mismo título para este usuario, proceder a crear
+        pool.query(
+          "INSERT INTO dibujos_notas (usuario_id, titulo, descripcion, contenido) VALUES (?, ?, ?, ?)",
+          [usuarioId, titulo, descripcion, contenido],
+          (error, results) => {
+            if (error) throw error;
+            res.json({ message: "Dibujo creado exitosamente", id: results.insertId });
+          }
+        );
+      }
     }
   );
 };
-
 exports.eliminarDibujo = (req, res) => {
   const dibujoId = req.params.id;
   const usuarioId = req.user.id;

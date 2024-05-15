@@ -28,10 +28,18 @@ exports.eliminarDibujo = (req, res) => {
   const usuarioId = req.user.id;
 
   pool.query("DELETE FROM dibujos_notas WHERE id = ? AND usuario_id = ?", [dibujoId, usuarioId], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      console.error("Error al eliminar dibujo:", error); // Registrar el error en la consola
+      return res.status(500).json({ error: "Error interno del servidor" });
+    }
+
+    console.log("Resultado de la consulta:", results); // Registrar el resultado en la consola
+
     if (results.affectedRows === 0) {
+      console.log("Dibujo no encontrado o no pertenece al usuario"); // Registrar en la consola
       return res.status(404).json({ error: "Dibujo no encontrado o no pertenece al usuario" });
     }
+
     res.json({ message: "Dibujo eliminado exitosamente" });
   });
 };
